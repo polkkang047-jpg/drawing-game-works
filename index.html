@@ -2,32 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sketch & Guess Multiplayer</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; text-align: center; margin: 0; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; text-align: center; margin: 0; padding: 15px; color: #333; }
         .hidden { display: none !important; }
-        #game-container { display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
-        #canvas { background: white; border: 3px solid #333; cursor: crosshair; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #sidebar { width: 280px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: left; display: flex; flex-direction: column; justify-content: space-between; height: 430px; box-sizing: border-box; }
-        #scoreboard { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 120px; overflow-y: auto; }
+        #game-container { display: flex; justify-content: center; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        #canvas { background: white; border: 3px solid #333; cursor: crosshair; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 100%; touch-action: none; }
+        #sidebar { width: 100%; max-width: 320px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; height: 400px; box-sizing: border-box; }
+        #scoreboard { list-style: none; padding: 0; margin: 0 0 10px 0; max-height: 100px; overflow-y: auto; }
         #scoreboard li { padding: 6px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 14px; }
-        #chat-box { flex-grow: 1; border: 1px solid #ccc; overflow-y: auto; margin-bottom: 10px; padding: 8px; background: #fafafa; border-radius: 4px; font-size: 14px; }
+        #chat-box { flex-grow: 1; border: 1px solid #ccc; overflow-y: auto; margin-bottom: 10px; padding: 8px; background: #fafafa; border-radius: 4px; font-size: 14px; text-align: left; }
         #chat-input-container { display: flex; gap: 5px; }
-        #guess-input { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background: #007bff; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        #guess-input { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 14px; }
         button:hover { background: #0056b3; }
         .give-up-btn { background: #dc3545; margin-top: 10px; width: 100%; padding: 12px; font-size: 16px; }
         .give-up-btn:hover { background: #bd2130; }
-        #login-screen { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        #login-screen { max-width: 400px; margin: 60px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         #username-input { width: 80%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        #word-display { font-size: 24px; color: #2c3e50; margin: 10px 0; font-weight: bold; background: #dfe6e9; display: inline-block; padding: 5px 20px; border-radius: 20px; }
-        #timer { font-size: 20px; color: #d63031; font-weight: bold; }
+        #word-display { font-size: 22px; color: #2c3e50; margin: 10px 0; font-weight: bold; background: #dfe6e9; display: inline-block; padding: 5px 20px; border-radius: 20px; }
+        #timer { font-size: 18px; color: #d63031; font-weight: bold; margin-bottom: 5px; }
+        #drawing-tools { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: center; gap: 15px; align-items: center; border: 2px solid #333; flex-wrap: wrap; }
+        #drawing-tools label { font-size: 14px; font-weight: bold; }
+        #fullscreen-btn { background: #6c757d; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <h1>✏️ Sketch & Guess Multiplayer</h1>
+    <button id="fullscreen-btn">🖥️ Go Fullscreen</button>
 
     <div id="login-screen">
         <h2>Welcome!</h2>
@@ -44,19 +48,25 @@
 
         <div id="game-container">
             <div>
+                <div id="drawing-tools" class="hidden">
+                    <label>Color: <input type="color" id="color-picker" value="#000000"></label>
+                    <label>Size: <input type="range" id="brush-size" min="1" max="25" value="3"></label>
+                    <button id="clear-btn" style="padding: 5px 10px; background: #ff9f43;">Clear Board</button>
+                </div>
+
                 <canvas id="canvas" width="500" height="400"></canvas>
                 <br>
-                <button id="give-up-btn" class="give-up-btn">Give Up / Skip Turn</button>
+                <button id="give-up-btn" class="give-up-btn hidden">Give Up / Skip Turn</button>
             </div>
 
             <div id="sidebar">
                 <div>
-                    <h3 style="margin-top: 0;">🏆 Players</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 5px;">🏆 Players</h3>
                     <ul id="scoreboard"></ul>
                 </div>
                 
-                <div style="display: flex; flex-direction: column; flex-grow: 1;">
-                    <h3>💬 Game Chat</h3>
+                <div style="display: flex; flex-direction: column; flex-grow: 1; height: 60%;">
+                    <h3 style="margin: 5px 0;">💬 Game Chat</h3>
                     <div id="chat-box"></div>
                     <div id="chat-input-container">
                         <input type="text" id="guess-input" placeholder="Type your guess here..." autocomplete="off">
@@ -71,7 +81,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, remove, onDisconnect, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase Setup using your Project Config Configuration
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDy6XmdCoe2hVR4yLs110MZbiEnx0m_9tk",
             authDomain: "sketch-and-guess-b8e4e.firebaseapp.com",
@@ -100,6 +110,11 @@
         const guessBtn = document.getElementById('guess-btn');
         const giveUpBtn = document.getElementById('give-up-btn');
         const scoreboard = document.getElementById('scoreboard');
+        const drawingTools = document.getElementById('drawing-tools');
+        const colorPicker = document.getElementById('color-picker');
+        const brushSize = document.getElementById('brush-size');
+        const clearBtn = document.getElementById('clear-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
 
         // Local state
         let myUsername = "";
@@ -108,53 +123,80 @@
         let currentSecretWord = "";
         let totalPlayersCount = 0;
         let gameState = "lobby"; 
+        let currentColor = "#000000";
+        let currentSize = 3;
 
-        const wordsList = ["apple", "banana", "house", "cat", "dog", "car", "sun", "tree", "computer", "pizza", "airplane", "guitar", "elephant", "football", "sword"];
+        const wordsList = ["apple", "banana", "house", "cat", "dog", "car", "sun", "tree", "computer", "pizza", "airplane", "guitar", "elephant", "football", "sword", "burger", "cookie", "chair"];
+
+        // FULLSCREEN LOGIC
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error trying to enable full-screen mode: ${err.message}`);
+                });
+                fullscreenBtn.innerText = "❌ Exit Fullscreen";
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.innerText = "🖥️ Go Fullscreen";
+            }
+        });
+
+        // TOOLBAR EVENT LISTENERS
+        colorPicker.addEventListener('input', (e) => currentColor = e.target.value);
+        brushSize.addEventListener('input', (e) => currentSize = e.target.value);
+        clearBtn.addEventListener('click', () => {
+            if (amIDrawer) set(ref(db, 'canvasCommands'), { type: "clear", timestamp: Date.now() });
+        });
 
         // 1. JOIN LOGIC
         joinBtn.addEventListener('click', () => {
-            myUsername = usernameInput.value.trim().replace(/[.#$\[\]]/g, ""); // Clean Firebase keys
+            myUsername = usernameInput.value.trim().replace(/[.#$\[\]]/g, ""); 
             if (!myUsername) return alert("Please type a valid username!");
 
             loginScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
 
-            // Add client user to firebase
             const playerRef = ref(db, 'players/' + myUsername);
             set(playerRef, { score: 0 });
-
-            // Automatically clean up user if they leave or close tab
             onDisconnect(playerRef).remove();
 
             setupGameListeners();
             setupCanvasDrawing();
         });
 
+        // UNIVERSAL DRAWING ACTION
+        function drawLine(x, y, isNewStroke, color, size) {
+            ctx.lineWidth = size;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+            if (isNewStroke) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            }
+        }
+
         // 2. CENTRAL REALTIME DATABASE LISTENERS
         function setupGameListeners() {
-            // Track Player list changes
             onValue(ref(db, 'players'), (snapshot) => {
                 const players = snapshot.val() || {};
                 totalPlayersCount = Object.keys(players).length;
                 
-                // Clear and rebuild scoreboard view
                 scoreboard.innerHTML = "";
                 Object.keys(players).forEach(name => {
                     const li = document.createElement('li');
                     li.innerHTML = `<span>${name}</span> <strong>${players[name].score} pts</strong>`;
                     scoreboard.appendChild(li);
 
-                    // Win Check Condition: First to 10 points
                     if (players[name].score >= 10 && gameState !== "gameover") {
                         declareWinner(name);
                     }
                 });
-
-                // Lobby Host Controller Logic: Handles starting sequence if 2+ users arrive
                 handleLobbyManagement(players);
             });
 
-            // Sync Main Game State Parameters
             onValue(ref(db, 'gameState'), (snapshot) => {
                 const data = snapshot.val();
                 if (!data) return;
@@ -166,9 +208,13 @@
                     gameStatus.innerText = "Waiting for players to join...";
                     wordDisplay.innerText = "Lobby";
                     ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                    drawingTools.classList.add('hidden');
+                    giveUpBtn.classList.add('hidden');
                 } else if (gameState === "countdown") {
                     gameStatus.innerText = "Match is starting soon!";
                     wordDisplay.innerText = "Get Ready!";
+                    drawingTools.classList.add('hidden');
+                    giveUpBtn.classList.add('hidden');
                 } else if (gameState === "playing") {
                     amIDrawer = (data.drawer === myUsername);
                     
@@ -178,17 +224,18 @@
                         guessInput.disabled = true;
                         guessBtn.disabled = true;
                         giveUpBtn.classList.remove('hidden');
+                        drawingTools.classList.remove('hidden'); 
                     } else {
                         gameStatus.innerText = `${data.drawer} is drawing!`;
                         wordDisplay.innerText = "Guess the word!";
                         guessInput.disabled = false;
                         guessBtn.disabled = false;
                         giveUpBtn.classList.add('hidden');
+                        drawingTools.classList.add('hidden'); 
                     }
                 }
             });
 
-            // Live Timer Stream Synchronization
             onValue(ref(db, 'gameTimer'), (snapshot) => {
                 const time = snapshot.val();
                 if (time !== null) {
@@ -198,28 +245,17 @@
                 }
             });
 
-            // Live Canvas Stream Synchronization
             onValue(ref(db, 'canvasCommands'), (snapshot) => {
                 const cmd = snapshot.val();
-                if (!cmd || amIDrawer) return; // Drawers don't draw over themselves
+                if (!cmd) return; 
 
                 if (cmd.type === "clear") {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                } else if (cmd.type === "draw") {
-                    ctx.lineWidth = 3;
-                    ctx.lineCap = 'round';
-                    ctx.strokeStyle = '#000';
-                    if (cmd.isNewStroke) {
-                        ctx.beginPath();
-                        ctx.moveTo(cmd.x, cmd.y);
-                    } else {
-                        ctx.lineTo(cmd.x, cmd.y);
-                        ctx.stroke();
-                    }
+                } else if (cmd.type === "draw" && !amIDrawer) {
+                    drawLine(cmd.x, cmd.y, cmd.isNewStroke, cmd.color, cmd.size);
                 }
             });
 
-            // Global Chat message listener
             onValue(ref(db, 'chat'), (snapshot) => {
                 chatBox.innerHTML = "";
                 const updates = snapshot.val();
@@ -234,29 +270,40 @@
             });
         }
 
-        // 3. CANVAS DRAWING SYSTEM
+        // 3. CANVAS DRAWING SYSTEM (With Mobile Touch Integration!)
         function setupCanvasDrawing() {
-            function sendDrawAction(x, y, isNewStroke) {
-                if (!amIDrawer) return;
-                set(ref(db, 'canvasCommands'), { type: "draw", x, y, isNewStroke, timestamp: Date.now() });
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+                const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
             }
 
-            canvas.addEventListener('mousedown', (e) => {
+            function sendDrawAction(e, isNewStroke) {
                 if (!amIDrawer) return;
-                isDrawing = true;
-                const rect = canvas.getBoundingClientRect();
-                sendDrawAction(e.clientX - rect.left, e.clientY - rect.top, true);
-            });
+                e.preventDefault(); 
+                const pos = getCoordinates(e);
+                
+                drawLine(pos.x, pos.y, isNewStroke, currentColor, currentSize);
+                
+                set(ref(db, 'canvasCommands'), { 
+                    type: "draw", x: pos.x, y: pos.y, isNewStroke, color: currentColor, size: currentSize, timestamp: Date.now() 
+                });
+            }
 
-            canvas.addEventListener('mousemove', (e) => {
-                if (!isDrawing || !amIDrawer) return;
-                const rect = canvas.getBoundingClientRect();
-                sendDrawAction(e.clientX - rect.left, e.clientY - rect.top, false);
-            });
+            // MOUSE
+            canvas.addEventListener('mousedown', (e) => { if (amIDrawer) { isDrawing = true; sendDrawAction(e, true); } });
+            canvas.addEventListener('mousemove', (e) => { if (isDrawing && amIDrawer) sendDrawAction(e, false); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mouseleave', () => isDrawing = false);
 
-            window.addEventListener('mouseup', () => {
-                isDrawing = false;
-            });
+            // TOUCH (MOBILE)
+            canvas.addEventListener('touchstart', (e) => { if (amIDrawer) { isDrawing = true; sendDrawAction(e, true); } }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { if (isDrawing && amIDrawer) sendDrawAction(e, false); }, { passive: false });
+            window.addEventListener('touchend', () => isDrawing = false);
+            canvas.addEventListener('touchcancel', () => isDrawing = false);
         }
 
         // 4. CHAT GUESSING IMPLEMENTATION
@@ -265,14 +312,11 @@
             if (!text) return;
             guessInput.value = "";
 
-            // Check if Guess is correct
             if (gameState === "playing" && !amIDrawer && text.toLowerCase() === currentSecretWord.toLowerCase()) {
-                // Award points to solver via transaction safely
                 runTransaction(ref(db, `players/${myUsername}/score`), (currentScore) => {
                     return (currentScore || 0) + 1;
                 });
-                
-                broadcastMessage("System", `🎉 ${myUsername} guessed the correct word: **${currentSecretWord}**!`);
+                broadcastMessage("System", `🎉 ${myUsername} guessed the word: **${currentSecretWord}**!`);
                 nextRound();
             } else {
                 broadcastMessage(myUsername, text);
@@ -284,25 +328,20 @@
         giveUpBtn.addEventListener('click', () => { if(amIDrawer) nextRound(); });
 
         function broadcastMessage(user, text) {
-            const newMsgRef = ref(db, 'chat/' + Date.now());
-            set(newMsgRef, { user, text });
+            set(ref(db, 'chat/' + Date.now()), { user, text });
         }
 
-        // 5. BACKEND LOBBY & ROUND HANDLERS (Managed seamlessly by active room host)
+        // 5. AUTOMATED HOST MANAGEMENT HOOKS
         let timerInterval = null;
         function handleLobbyManagement(playersList) {
             const playerKeys = Object.keys(playersList);
-            // The alpha-first player key acts as room manager/host ticker
             const isHost = playerKeys.sort()[0] === myUsername; 
             if (!isHost) return; 
 
             if (gameState === "lobby" && playerKeys.length >= 2) {
                 update(ref(db, 'gameState'), { state: "countdown" });
-                startHostTimer(20, () => {
-                    startMatch(playerKeys);
-                });
+                startHostTimer(20, () => { nextRound(); });
             } else if ((gameState === "playing" || gameState === "countdown") && playerKeys.length < 2) {
-                // Reset match if players drop out mid game
                 clearInterval(timerInterval);
                 set(ref(db, 'gameState'), { state: "lobby" });
                 set(ref(db, 'gameTimer'), 0);
@@ -325,29 +364,18 @@
             }, 1000);
         }
 
-        function startMatch(players) {
-            set(ref(db, 'chat'), null);
-            nextRound();
-        }
-
         function nextRound() {
             onValue(ref(db, 'players'), (snapshot) => {
                 const players = snapshot.val() || {};
                 const playerKeys = Object.keys(players);
                 if (playerKeys.length < 2) return;
 
-                // Host determines rotation parameters
                 const randomDrawer = playerKeys[Math.floor(Math.random() * playerKeys.length)];
                 const randomWord = wordsList[Math.floor(Math.random() * wordsList.length)];
 
                 set(ref(db, 'canvasCommands'), { type: "clear" });
-                set(ref(db, 'gameState'), {
-                    state: "playing",
-                    drawer: randomDrawer,
-                    currentWord: randomWord
-                });
+                set(ref(db, 'gameState'), { state: "playing", drawer: randomDrawer, currentWord: randomWord });
 
-                // 5-minute round limit timer (300 seconds)
                 startHostTimer(300, () => {
                     broadcastMessage("System", `Time's up! The word was ${randomWord}.`);
                     nextRound();
@@ -358,14 +386,12 @@
         function declareWinner(winnerName) {
             gameState = "gameover";
             clearInterval(timerInterval);
-            alert(`🎉 ${winnerName} has reached 10 points and won the entire game!`);
+            alert(`🎉 ${winnerName} won the entire game by hitting 10 points!`);
             
-            // Clean up and reset database states back to base lobby structure
             set(ref(db, 'gameState'), { state: "lobby" });
             set(ref(db, 'canvasCommands'), { type: "clear" });
             set(ref(db, 'chat'), null);
             
-            // Wipe running total point scores
             onValue(ref(db, 'players'), (snapshot) => {
                 const players = snapshot.val() || {};
                 Object.keys(players).forEach(name => {
